@@ -1,0 +1,1564 @@
+{
+  "uid": "azure-vm-sysmon",
+  "title": "Azure VM System Monitoring",
+  "description": "CPU, memory, disk and network for Azure virtual machines (Azure Monitor metrics + Log Analytics).",
+  "tags": [
+    "azure",
+    "vm",
+    "system",
+    "monitoring"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "1h"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "grafana-azure-monitor-datasource",
+        "current": {},
+        "hide": 0,
+        "refresh": 1,
+        "options": [],
+        "regex": ""
+      },
+      {
+        "name": "subscription",
+        "label": "Subscription",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Subscriptions"
+        },
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "resourceGroup",
+        "label": "Resource group",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Groups",
+          "subscription": "$subscription"
+        },
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "vm",
+        "label": "VM",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Names",
+          "subscription": "$subscription",
+          "resourceGroup": "$resourceGroup",
+          "namespace": "microsoft.compute/virtualmachines"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "sort": 1,
+        "hide": 0,
+        "current": {},
+        "options": []
+      },
+      {
+        "name": "workspace",
+        "label": "Log Analytics workspace",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${datasource}"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Workspaces",
+          "subscription": "$subscription"
+        },
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "hide": 0,
+        "current": {},
+        "options": []
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview (Azure platform metrics - no agent required)",
+      "id": 1,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Avg CPU",
+      "description": "Mean host CPU across selected VMs over the time range.",
+      "id": 2,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Percentage CPU",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Peak CPU",
+      "description": "Highest CPU sample across selected VMs.",
+      "id": 3,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Percentage CPU",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Min available memory",
+      "description": "Lowest available memory seen on any selected VM.",
+      "id": 4,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Available Memory Bytes",
+            "aggregation": "Minimum",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 536870912
+              },
+              {
+                "color": "green",
+                "value": 1073741824
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "min"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "VM availability",
+      "description": "1 = VM available, 0 = unavailable (VmAvailabilityMetric).",
+      "id": 5,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "VmAvailabilityMetric",
+            "aggregation": "Minimum",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Up",
+                  "color": "green"
+                },
+                "0": {
+                  "text": "Down",
+                  "color": "red"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto",
+        "justifyMode": "auto",
+        "orientation": "auto"
+      }
+    },
+    {
+      "type": "row",
+      "title": "CPU & Memory",
+      "id": 6,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU utilization",
+      "description": "",
+      "id": 7,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Percentage CPU",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Available memory",
+      "description": "",
+      "id": 8,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Available Memory Bytes",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Disk",
+      "id": 9,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk throughput - read",
+      "description": "Bytes read from all attached disks per time grain.",
+      "id": 10,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Disk Read Bytes",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk throughput - write",
+      "description": "Bytes written to all attached disks per time grain.",
+      "id": 11,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Disk Write Bytes",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk IOPS - read",
+      "description": "",
+      "id": 12,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Disk Read Operations/Sec",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "iops",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk IOPS - write",
+      "description": "",
+      "id": 13,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Disk Write Operations/Sec",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "iops",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "OS disk queue depth",
+      "description": "Sustained values > 1-2 suggest the OS disk is a bottleneck.",
+      "id": 14,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "OS Disk Queue Depth",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Network",
+      "id": 15,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Network in",
+      "description": "",
+      "id": 16,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Network In Total",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network out",
+      "description": "",
+      "id": 17,
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "resourceName": "$vm",
+                "region": ""
+              }
+            ],
+            "metricNamespace": "microsoft.compute/virtualmachines",
+            "metricName": "Network Out Total",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "allowedTimeGrainsMs": [],
+            "dimensionFilters": [],
+            "alias": "{{ resourcename }}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Guest OS (requires Azure Monitor Agent + DCR from main.bicep)",
+      "id": 18,
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "Memory used %",
+          "description": "Linux: % Used Memory. Windows: % Committed Bytes In Use.",
+          "id": 19,
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 50
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "${datasource}"
+              },
+              "queryType": "Azure Log Analytics",
+              "azureLogAnalytics": {
+                "query": "Perf\n| where $__timeFilter(TimeGenerated)\n| where (ObjectName == 'Memory' and CounterName in ('% Used Memory', '% Committed Bytes In Use'))\n| extend VM = tostring(split(_ResourceId, '/')[-1])\n| where VM in~ (${vm:singlequote})\n| summarize UsedPct = avg(CounterValue) by bin(TimeGenerated, $__interval), VM\n| order by TimeGenerated asc",
+                "resources": [
+                  "$workspace"
+                ],
+                "resultFormat": "time_series",
+                "dashboardTime": true,
+                "timeColumn": "TimeGenerated"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "line"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              },
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 95
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "type": "bargauge",
+          "title": "Disk free space (latest)",
+          "id": 20,
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 50
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "${datasource}"
+              },
+              "queryType": "Azure Log Analytics",
+              "azureLogAnalytics": {
+                "query": "Perf\n| where $__timeFilter(TimeGenerated)\n| where ObjectName in ('Logical Disk', 'LogicalDisk') and CounterName == '% Free Space'\n| where InstanceName !in ('_Total', 'total') and InstanceName !startswith 'HarddiskVolume'\n| extend VM = tostring(split(_ResourceId, '/')[-1])\n| where VM in~ (${vm:singlequote})\n| summarize arg_max(TimeGenerated, CounterValue) by VM, Disk = InstanceName\n| project VM, Disk, FreePct = round(CounterValue, 1)\n| order by FreePct asc",
+                "resources": [
+                  "$workspace"
+                ],
+                "resultFormat": "table",
+                "dashboardTime": true,
+                "timeColumn": "TimeGenerated"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 10
+                  },
+                  {
+                    "color": "green",
+                    "value": 20
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "transformations": [],
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "/^FreePct$/",
+              "values": true
+            }
+          }
+        },
+        {
+          "type": "table",
+          "title": "Agent heartbeat",
+          "id": 21,
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${datasource}"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 58
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "${datasource}"
+              },
+              "queryType": "Azure Log Analytics",
+              "azureLogAnalytics": {
+                "query": "Heartbeat\n| where $__timeFilter(TimeGenerated)\n| extend VM = tostring(split(ResourceId, '/')[-1])\n| where VM in~ (${vm:singlequote})\n| summarize LastHeartbeat = max(TimeGenerated) by VM, OSType, Version\n| extend MinutesAgo = datetime_diff('minute', now(), LastHeartbeat)\n| order by MinutesAgo desc",
+                "resources": [
+                  "$workspace"
+                ],
+                "resultFormat": "table",
+                "dashboardTime": true,
+                "timeColumn": "TimeGenerated"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "MinutesAgo"
+                },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-background"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 5
+                        },
+                        {
+                          "color": "red",
+                          "value": 15
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true
+          }
+        }
+      ]
+    }
+  ]
+}
